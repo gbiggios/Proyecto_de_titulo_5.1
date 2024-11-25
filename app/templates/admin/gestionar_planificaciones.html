@@ -21,6 +21,10 @@
 
         <!-- Contenido Principal -->
         <div class="col-md-9 col-12 fade-enter">
+            <form action="{{ url_for('admin.planificacion_admin.exportar_excel_planificacion', taller_id=taller_seleccionado.taller_id) }}" method="get">
+                <button type="submit" class="btn btn-success">Exportar a Excel</button>
+            </form>
+            
             <h2 class="text-lg font-bold mb-4">{{ taller_seleccionado.nombre }}</h2>
             
             <!-- Formulario de Objetivo General -->

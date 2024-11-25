@@ -8,81 +8,105 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body { background-color: #f5f5f5; }
+        body {
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Sidebar Styles */
         .sidebar {
             background-color: #f7d6e0;
-            min-height: 100vh;
-            padding-top: 1rem;
             position: fixed;
+            top: 70px; /* Ajuste para que la sidebar inicie debajo de la navbar */
+            left: 0;
+            height: calc(100vh - 70px); /* Altura ajustada para no incluir la navbar */
             width: 250px;
-            transition: all 0.3s;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
         }
-        .sidebar.collapsed { width: 60px; }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
         .sidebar a {
             color: #333;
             font-weight: bold;
             padding: 10px 15px;
             display: block;
-            transition: all 0.3s;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: #ffebef;
             text-decoration: none;
         }
-        .sidebar a:hover { background-color: #ffebef; text-decoration: none; }
-        .sidebar .active { background-color: #ddc3c8; }
+
+        .sidebar .active {
+            background-color: #ddc3c8;
+        }
+
         .sidebar.collapsed a {
             text-align: center;
             padding: 10px 5px;
         }
-        .sidebar.collapsed a span { display: none; }
-        .sidebar.collapsed a i { margin-right: 0; }
-        
-        /* Ajuste del contenido principal con un ancho máximo y margen superior */
-        .content {
-            margin-left: 260px;
-            background-color: #e8f0fe;
-            padding: 2rem;
-            border-radius: 10px;
-            transition: all 0.3s;
-            max-width: 1200px;
-            margin-right: auto;
-            margin-left: auto;
-            margin-top: 70px; /* Ajuste para evitar que quede debajo de la navbar */
+
+        .sidebar.collapsed a span {
+            display: none;
         }
-        .content.expanded { margin-left: 80px; }
-        .btn-custom { background-color: #f7d6e0; color: #333; font-weight: bold; }
-        .btn-custom:hover { background-color: #f9bfc7; }
-        
-        /* Fixed Navbar */
+
+        .sidebar.collapsed a i {
+            margin-right: 0;
+        }
+
+        /* Navbar Styles */
         .navbar {
             background-color: #f7d6e0;
             border-bottom: 1px solid #ddd;
             position: fixed;
             top: 0;
+            left: 0;
             width: 100%;
-            z-index: 1030;
+            height: 70px; /* Altura fija de la navbar */
+            z-index: 1050;
         }
-        .navbar .navbar-brand, .navbar .nav-link, .navbar .navbar-text {
+
+        .navbar .navbar-brand,
+        .navbar .nav-link,
+        .navbar .navbar-text {
             color: #333 !important;
         }
-        .navbar .navbar-brand:hover, .navbar .nav-link:hover {
+
+        .navbar .navbar-brand:hover,
+        .navbar .nav-link:hover {
             color: #000 !important;
         }
-        .navbar-logo {
-            width: 40px;
-            height: auto;
-            margin-right: 10px;
+
+        /* Main Content Styles */
+        .content {
+            margin-left: 250px;
+            margin-top: 70px; /* Margen superior para evitar superposición con la navbar */
+            padding: 2rem;
+            background-color: #e8f0fe;
+            transition: margin-left 0.3s ease;
         }
-        .table th, .table td { vertical-align: middle; }
+
+        .content.expanded {
+            margin-left: 60px;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <button class="btn btn-link" id="sidebarCollapse">
             <i class="fas fa-bars"></i>
         </button>
-        <!-- Logo de la empresa -->
         <a class="navbar-brand" href="#">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="navbar-logo"> <!-- Ruta desde static/img -->
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="width: 40px; margin-right: 10px;">
             Admin Dashboard
         </a>
         <ul class="navbar-nav ml-auto">
@@ -100,6 +124,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
+        {% block sidebar %}
         <a href="{{ url_for('admin.dashboard') }}" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a>
         <a href="{{ url_for('admin.docentes_admin.docentes_admin_home') }}"><i class="fas fa-users"></i> <span>Gestión de Docentes</span></a>
         <a href="{{ url_for('admin.salas_admin.salas_admin_listar') }}"><i class="fas fa-chalkboard"></i> <span>Gestión de Salas</span></a>
@@ -111,16 +136,16 @@
         <a href="{{ url_for('admin.perfiles_admin.perfiles_admin_listar') }}"><i class="fas fa-user-cog"></i> <span>Gestión de Perfiles</span></a>
         <a href="{{ url_for('admin.planificacion_admin.listar_planificaciones_admin') }}"><i class="fas fa-calendar-alt"></i> <span>Gestión de Planificaciones</span></a>
         <a href="{{ url_for('admin.asistencias_admin.asistencia_dashboard') }}"><i class="fas fa-calendar-check"></i> <span>Gestión de Asistencias</span></a>
+        {% endblock %}
     </div>
 
     <!-- Main Content -->
-    <div class="container-fluid content" id="mainContent">
+    <div class="content" id="mainContent">
         {% block content %}
         {% endblock %}
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JS -->
     <script>
         // Toggle the sidebar
         $('#sidebarCollapse').on('click', function () {

@@ -163,3 +163,49 @@ def actualizar_objetivo_general():
     flash('Objetivo general actualizado exitosamente.')
 
     return redirect(url_for('admin.planificacion_admin.listar_planificaciones_taller', taller_id=taller_id))
+
+import pandas as pd
+from flask import Response
+from io import BytesIO
+
+# Ruta para exportar planificación y objetivo general a Excel
+@planificacion_bp.route('/exportar_excel/<int:taller_id>', methods=['GET'], endpoint='exportar_excel_planificacion')
+@login_required
+@admin_required
+def exportar_excel_planificacion(taller_id):
+    taller = Taller.query.get_or_404(taller_id)
+    planificaciones = Planificacion.query.filter_by(taller_id=taller_id).all()
+
+    # Crear datos para el Excel
+    datos = []
+    for planificacion in planificaciones:
+        datos.append({
+            "Mes": planificacion.mes,
+            "Habilidades": planificacion.habilidades,
+            "Recursos": planificacion.recursos,
+            "Actividades": planificacion.actividades,
+            "Estado": planificacion.estado
+        })
+
+    # Crear DataFrame de pandas
+    df = pd.DataFrame(datos)
+
+    # Agregar el objetivo general del taller como primera fila
+    objetivo_general_df = pd.DataFrame([{"Mes": "Objetivo General", "Habilidades": taller.objetivo_general, "Recursos": "", "Actividades": "", "Estado": ""}])
+    df = pd.concat([objetivo_general_df, df], ignore_index=True)
+
+    # Escribir el Excel en memoria usando BytesIO
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name="Planificacion")
+    
+    # Preparar la respuesta
+    output.seek(0)
+    response = Response(
+        output.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={
+            "Content-Disposition": f"attachment; filename=Planificacion_Taller_{taller.nombre}.xlsx"
+        }
+    )
+    return response
