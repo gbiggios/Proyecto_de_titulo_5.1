@@ -11,7 +11,7 @@
             <ul class="list-group">
                 {% for taller in talleres %}
                 <li 
-                    class="list-group-item bg-background p-2 rounded cursor-pointer hover:bg-muted {% if taller.taller_id == taller_seleccionado.taller_id %}active{% endif %}"
+                    class="list-group-item bg-background p-2 rounded cursor-pointer hover:bg-muted {% if taller.id == taller_seleccionado.id %}active{% endif %}"
                     onclick="window.location.href='{{ url_for('docente.docente_planificaciones.ver_planificaciones_taller', taller_id=taller.taller_id) }}'">
                     {{ taller.nombre }}
                 </li>
@@ -33,8 +33,8 @@
                                     <h4 class="text-lg font-weight-bold">{{ mes.capitalize() }}</h4>
                                     <div class="btn-group">
                                         <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#editModal" 
-                                        data-id="{{ planificacion.id_planificacion }}"
-                                        data-taller_id="{{ taller_seleccionado.taller_id }}"
+                                        data-id="{{ planificacion.id }}"
+                                        data-taller_id="{{ taller_seleccionado.id }}"
                                         data-mes="{{ planificacion.mes }}"
                                         data-habilidades="{{ planificacion.habilidades }}"
                                         data-recursos="{{ planificacion.recursos }}"
@@ -42,8 +42,8 @@
                                         data-estado="{{ planificacion.estado }}">
                                             Editar
                                         </button>
-                                        
-                                        <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#deleteModal" data-id="{{ planificacion.id_planificacion }}">
+                                      
+                                        <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#deleteModal" data-id="{{ planificacion.id }}">
                                             Eliminar
                                         </button>
                                     </div>
@@ -63,7 +63,7 @@
             <div class="bg-background p-4 rounded shadow mt-4">
                 <h4 class="text-lg font-weight-bold">Crear Planificación para {{ siguiente_mes|capitalize }}</h4>
                 <form method="POST" action="{{ url_for('docente.docente_planificaciones.crear_planificacion') }}">
-                    <input type="hidden" name="taller_id" value="{{ taller_seleccionado.taller_id }}">
+                    <input type="hidden" name="taller_id" value="{{ taller_seleccionado.id }}">
                     <input type="hidden" name="mes" value="{{ siguiente_mes }}">
                     <div class="form-group">
                         <label for="habilidades">Habilidades</label>
@@ -102,9 +102,9 @@
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <!-- Asegúrate de que 'id_planificacion' se pasa correctamente aquí -->
-            <form method="POST" action="{{ url_for('docente.docente_planificaciones.editar_planificacion', id_planificacion=edit_id) }}">
-                <input type="hidden" name="id_planificacion" value="{{ edit_id }}">
+            <!-- Formulario de edición -->
+            <form method="POST" action="{{ url_for('docente.docente_planificaciones.editar_planificacion') }}">
+                <input type="hidden" name="id_planificacion" id="edit_id" value="">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalLabel">Editar Planificación</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -115,15 +115,15 @@
                     <!-- Campos del formulario para editar -->
                     <div class="form-group">
                         <label for="editModal_habilidades">Habilidades</label>
-                        <textarea class="form-control" id="editModal_habilidades" name="habilidades">{{ habilidades }}</textarea>
+                        <textarea class="form-control" id="editModal_habilidades" name="habilidades"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editModal_recursos">Recursos</label>
-                        <textarea class="form-control" id="editModal_recursos" name="recursos">{{ recursos }}</textarea>
+                        <textarea class="form-control" id="editModal_recursos" name="recursos"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editModal_actividades">Actividades</label>
-                        <textarea class="form-control" id="editModal_actividades" name="actividades">{{ actividades }}</textarea>
+                        <textarea class="form-control" id="editModal_actividades" name="actividades"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editModal_estado">Estado</label>
@@ -136,48 +136,30 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-
 <script>
-    function handleTallerChange(url) {
-        const content = document.querySelector('.col-md-9');
-        content.classList.add('fade-exit');
-        
-        setTimeout(() => {
-            window.location.href = url;
-        }, 500);
-    }
-
+    // Rellenar los campos del modal con los datos de la planificación seleccionada
     $('#editModal').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget); // El botón que activa el modal
-    var id_planificacion = button.data('id'); // Obtiene el id de la planificación
-    var habilidades = button.data('habilidades');
-    var recursos = button.data('recursos');
-    var actividades = button.data('actividades');
-    var estado = button.data('estado');
+        var button = $(event.relatedTarget); // Botón que abrió el modal
+        var id = button.data('id');
+        var mes = button.data('mes');
+        var habilidades = button.data('habilidades');
+        var recursos = button.data('recursos');
+        var actividades = button.data('actividades');
+        var estado = button.data('estado');
 
-    var modal = $(this);
-    modal.find('#edit_id').val(id_planificacion);  // Asigna el id de la planificación al campo oculto
-    modal.find('#editModal_habilidades').val(habilidades);
-    modal.find('#editModal_recursos').val(recursos);
-    modal.find('#editModal_actividades').val(actividades);
-    modal.find('#editModal_estado').val(estado);
-});
-
-
-    $('#deleteModal').on('show.bs.modal', function (event) {
-        let button = $(event.relatedTarget);
-        let id = button.data('id');
-
-        let modal = $(this);
-        modal.find('#delete_id').val(id);
+        var modal = $(this);
+        modal.find('#edit_id').val(id);
+        modal.find('#editModal_habilidades').val(habilidades);
+        modal.find('#editModal_recursos').val(recursos);
+        modal.find('#editModal_actividades').val(actividades);
+        modal.find('#editModal_estado').val(estado);
     });
 </script>
-
 {% endblock %}
