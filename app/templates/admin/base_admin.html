@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: #f7d6e0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            z-index: 1050;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: #f7d6e0;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 250px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar a {
+            color: #333;
+            padding: 10px 15px;
+            display: block;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background-color: #ffebef;
+        }
+
+        .sidebar.collapsed a {
+            text-align: center;
+            padding: 10px 5px;
+        }
+
+        .sidebar.collapsed a span {
+            display: none;
+        }
+
+        /* Main Content */
+        .content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 2rem;
+            background-color: #e8f0fe;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content.expanded {
+            margin-left: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <button class="btn btn-link" id="sidebarCollapse">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="width: 40px; margin-right: 10px;">
+            Admin Dashboard
+        </a>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">Cambiar Contraseña</a>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        {% block sidebar %}
+        <a href="{{ url_for('admin.dashboard') }}" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a>
+        <a href="{{ url_for('admin.docentes_admin.docentes_admin_home') }}"><i class="fas fa-users"></i> <span>Gestión de Docentes</span></a>
+        <a href="{{ url_for('admin.salas_admin.salas_admin_listar') }}"><i class="fas fa-chalkboard"></i> <span>Gestión de Salas</span></a>
+        <a href="{{ url_for('admin.talleres_admin.talleres_admin_listar') }}"><i class="fas fa-briefcase"></i> <span>Gestión de Talleres</span></a>
+        <a href="{{ url_for('admin.estudiantes_admin.estudiantes_admin_home') }}"><i class="fas fa-user-graduate"></i> <span>Gestión de Estudiantes</span></a>
+        <a href="{{ url_for('admin.estudiantes_taller_admin.estudiantes_taller_admin_gestionar') }}"><i class="fas fa-user-friends"></i> <span>Estudiantes por Taller</span></a>
+        <a href="{{ url_for('admin.clases_admin.clases_admin_home') }}"><i class="fas fa-book"></i> <span>Gestión de Clases</span></a>
+        <a href="{{ url_for('admin.historial_admin.seleccionar_taller') }}"><i class="fas fa-calendar-alt"></i> <span>Historial de Asistencia</span></a>
+        <a href="{{ url_for('admin.perfiles_admin.perfiles_admin_listar') }}"><i class="fas fa-user-cog"></i> <span>Gestión de Perfiles</span></a>
+        <a href="{{ url_for('admin.planificacion_admin.listar_planificaciones_admin') }}"><i class="fas fa-calendar-alt"></i> <span>Gestión de Planificaciones</span></a>
+        <a href="{{ url_for('admin.asistencias_admin.asistencia_dashboard') }}"><i class="fas fa-calendar-check"></i> <span>Gestión de Asistencias</span></a>
+        {% endblock %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="content" id="mainContent">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- JS Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Toggle the sidebar
+        $('#sidebarCollapse').on('click', function () {
+            $('#sidebar').toggleClass('collapsed');
+            $('#mainContent').toggleClass('expanded');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+{% extends 'user/base_user.html' %}
+
+{% block title %}Gestión de Planificaciones{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Menú desplegable para seleccionar talleres -->
+    <div class="mb-4">
+        <label for="select-taller" class="font-weight-bold">Seleccionar Taller:</label>
+        <select id="select-taller" class="form-control" onchange="cambiarTaller(this)">
+            {% for taller in talleres %}
+                <option value="{{ url_for('docente.docente_planificaciones.ver_planificaciones_taller', taller_id=taller.taller_id) }}"
+                        {% if taller.taller_id == taller_seleccionado.taller_id %}selected{% endif %}>
+                    {{ taller.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Título del taller seleccionado -->
+    <h2 class="text-lg font-weight-bold mb-4">Planificaciones del Taller: {{ taller_seleccionado.nombre }}</h2>
+
+    <!-- Mostrar planificaciones por mes -->
+    <div class="row">
+        {% for mes, planificacion in planificaciones_por_mes.items() %}
+            {% if planificacion %}
+                <div class="col-md-6 col-12 mb-3">
+                    <div class="bg-light p-4 rounded shadow">
+                        <h4 class="text-lg font-weight-bold">{{ mes.capitalize() }}</h4>
+                        <p><strong>Habilidades:</strong> {{ planificacion.habilidades }}</p>
+                        <p><strong>Recursos:</strong> {{ planificacion.recursos }}</p>
+                        <p><strong>Actividades:</strong> {{ planificacion.actividades }}</p>
+                        <p><strong>Estado:</strong> {{ planificacion.estado }}</p>
+                        <!-- Botón para abrir el modal -->
+                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal"
+                            data-id="{{ planificacion.id }}"
+                            data-habilidades="{{ planificacion.habilidades }}"
+                            data-recursos="{{ planificacion.recursos }}"
+                            data-actividades="{{ planificacion.actividades }}"
+                            data-estado="{{ planificacion.estado }}">
+                            Editar
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Formulario para crear nueva planificación -->
+    {% if puede_crear %}
+    <div class="bg-light p-4 rounded shadow mt-4">
+        <h4 class="text-lg font-weight-bold">Crear Planificación para {{ siguiente_mes|capitalize }}</h4>
+        <form method="POST" action="{{ url_for('docente.docente_planificaciones.crear_planificacion') }}">
+            {{ form.hidden_tag() }} <!-- Token CSRF -->
+            <input type="hidden" name="taller_id" value="{{ taller_seleccionado.taller_id }}">
+            <input type="hidden" name="mes" value="{{ siguiente_mes }}">
+            <div class="form-group">
+                <label for="habilidades">Habilidades</label>
+                <textarea id="habilidades" name="habilidades" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="recursos">Recursos</label>
+                <textarea id="recursos" name="recursos" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="actividades">Actividades</label>
+                <textarea id="actividades" name="actividades" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" class="form-control" required>
+                    <option value="No realizado">No realizado</option>
+                    <option value="En desarrollo">En desarrollo</option>
+                    <option value="Planificada">Planificada</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Guardar Planificación</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para editar planificación -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('docente.docente_planificaciones.editar_planificacion') }}">
+
+                {{ form.hidden_tag() }} <!-- Token CSRF -->
+                <input type="hidden" name="id_planificacion" id="edit_id">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Editar Planificación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit_habilidades">Habilidades</label>
+                        <textarea id="edit_habilidades" name="habilidades" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_recursos">Recursos</label>
+                        <textarea id="edit_recursos" name="recursos" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_actividades">Actividades</label>
+                        <textarea id="edit_actividades" name="actividades" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_estado">Estado</label>
+                        <select id="edit_estado" name="estado" class="form-control">
+                            <option value="No realizado">No realizado</option>
+                            <option value="En desarrollo">En desarrollo</option>
+                            <option value="Planificada">Planificada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script para rellenar modal -->
+<script>
+    $('#editModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var id = button.data('id');
+        var habilidades = button.data('habilidades');
+        var recursos = button.data('recursos');
+        var actividades = button.data('actividades');
+        var estado = button.data('estado');
+
+        var modal = $(this);
+        modal.find('#edit_id').val(id);
+        modal.find('#edit_habilidades').val(habilidades);
+        modal.find('#edit_recursos').val(recursos);
+        modal.find('#edit_actividades').val(actividades);
+        modal.find('#edit_estado').val(estado);
+    });
+
+    function cambiarTaller(select) {
+        const url = select.value;
+        if (url) {
+            window.location.href = url;
+        }
+    }
+</script>
+{% endblock %}

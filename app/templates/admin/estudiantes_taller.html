@@ -1,0 +1,123 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Gestión de Estudiantes en Talleres{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Gestión de Estudiantes en Talleres</h1>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Formulario de asignación -->
+    <form action="{{ url_for('admin.estudiantes_taller_admin.estudiantes_taller_admin_gestionar') }}" method="POST" id="form-asignacion">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="taller_id">Selecciona un Taller:</label>
+            <select id="taller_id" name="taller_id" class="form-control" required>
+                <option value="" disabled selected>Seleccione un taller</option>
+                {% for taller in talleres %}
+                <option value="{{ taller.taller_id }}">{{ taller.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <label for="lista_estudiantes">Estudiantes Disponibles</label>
+                <select id="lista_estudiantes" class="form-control" multiple size="10">
+                    {% for estudiante in estudiantes %}
+                    <option value="{{ estudiante.id_estudiante }}">
+                        {{ estudiante.nombre }} {{ estudiante.apellido_paterno }} ({{ estudiante.curso }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="estudiantes_seleccionados">Estudiantes Seleccionados</label>
+                <select id="estudiantes_seleccionados" name="id_estudiantes[]" class="form-control" multiple size="10"></select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Asignar Estudiantes</button>
+    </form>
+
+    <!-- Vista de estudiantes inscritos -->
+    <h2 class="mt-5">Estudiantes Inscritos por Taller</h2>
+    <div class="form-group">
+        <label for="filtro_talleres">Selecciona un Taller:</label>
+        <select id="filtro_talleres" class="form-control">
+            <option value="" disabled selected>Seleccione un taller</option>
+            {% for taller in talleres %}
+            <option value="{{ taller.taller_id }}">{{ taller.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="vista_estudiantes" class="mt-3">
+        <p class="text-muted">Seleccione un taller para ver los estudiantes asignados.</p>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Mover estudiantes entre listas
+        $('#lista_estudiantes').on('dblclick', 'option', function () {
+            $('#estudiantes_seleccionados').append($(this));
+        });
+        $('#estudiantes_seleccionados').on('dblclick', 'option', function () {
+            $('#lista_estudiantes').append($(this));
+        });
+
+        // Cargar estudiantes inscritos dinámicamente
+        $('#filtro_talleres').on('change', function () {
+            const taller_id = $(this).val();
+            $.ajax({
+                url: `/admin/estudiantes_taller/load_students/${taller_id}`,
+                method: 'GET',
+                success: function (html) {
+                    $('#vista_estudiantes').html(html);
+                },
+                error: function () {
+                    $('#vista_estudiantes').html('<p class="text-danger">Error al cargar los estudiantes asignados.</p>');
+                }
+            });
+            
+            });
+        });
+
+        $(document).on('click', '.eliminar-asignacion', function () {
+            const url = $(this).data('url'); // Obtener la URL del botón
+            const boton = $(this);
+        
+            if (confirm('¿Está seguro que desea eliminar esta asignación?')) {
+                $.ajax({
+                    url: url,  // Usar la URL generada
+                    method: 'POST',
+                    success: function () {
+                        // Eliminar el elemento de la lista
+                        boton.closest('li').remove();
+                        alert('Asignación eliminada correctamente.');
+                    },
+                    error: function () {
+                        alert('Error al eliminar la asignación. Intente nuevamente.');
+                    }
+                });
+            }
+        });
+        
+        
+</script>
+{% endblock %}
