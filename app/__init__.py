@@ -36,6 +36,7 @@ def create_app():
     from app.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
+    # Redirigir la raíz a la página de inicio de sesión
     @app.route('/')
     def index():
         return redirect(url_for('auth.login'))
